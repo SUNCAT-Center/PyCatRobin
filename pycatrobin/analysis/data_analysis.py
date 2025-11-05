@@ -13,7 +13,7 @@ from openpyxl.styles.builtins import styles
 from pandas.core.interchange.dataframe_protocol import DataFrame
 from statsmodels.formula.api import nominal_gee
 
-from data.extract import DataForGP, _plot_tos_data, _extract_indices_target
+from ..data.extract import DataForGP, _plot_tos_data, _extract_indices_target
 
 class DataAnalysis:
 

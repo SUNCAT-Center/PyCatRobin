@@ -31,16 +31,20 @@ conda activate pycatrobin
   pip install .
   ```
   
-### 3. Run the example code (under development)
-* Example python codes to use PyCatRobin are in [`tutorial/`](https://github.com/dongjae-shin/PyCatRobin/tree/main/tutorial) directory.
-* In the `tutorial/`, run as follows:
+### 3. Run example codes (under development)
+* Example python codes to use `pycatrobin` are in [`examples/`](examples/) directory.
+* In the `examples/`, run as follows:
   ``` bash
-  python ./example.py
+  python ./extract_from_gc_data_snr.py
+  python ./Welchs_t_test.py
+  python ./fANOVA.py
   ```
+* See the instructions in the `examples/` folder.
+* Currently, Welch's t-test and fANOVA codes are separate scripts from `pycatrobin`. They will be incorporated into the main package in the near future.
 
 ## Related publication
-* Application to catalyst testing data analysis (TBD)
-* Integration into a LLM-based multi-agent system ([`link`](https://sc25.conference-program.com/presentation/?id=ws_fgai105&sess=sess209))
+* *Quantifying Experimental Uncertainty in Catalyst Deactivation: Round-Robin Testing and Implications for Machine-Learned Prediction*, 
+S. Bac, D. Shin, S. Hong, J. Heinlein, A. Khan, G. Barber, Z. Chen, M. M. Albrechtsen, C. Tassone*, R. M. Rioux*, M. Cargnello*, S. R. Bare*, K. Winther*, P. Christopher*, A. S. Hoffman*, submitted (2025).
 
 ## Acknowledgement
 * Original codes for t-test and fANOVA analyses were written by Dr. Selin Bac (UCSB) and Michael Albrechtsen (DTU), respectively.
