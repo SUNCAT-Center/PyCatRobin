@@ -14,6 +14,8 @@ setup(
         'numpy==1.26.4',
         'matplotlib==3.9.2',
         'ipython==8.25.0',
+        'scikit-fda==0.10.1',
+        'pyside6==6.10.0',
         'scipy==1.13.1'
     ]
 )

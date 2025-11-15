@@ -433,10 +433,13 @@ class DataForGP:
             axnext = fig.add_axes([0.81, 0.05, 0.1, 0.075])
             axclose = fig.add_axes([0.59, 0.05, 0.1, 0.075])
 
+            global bnext
             bnext = Button(axnext, 'Next')
             bnext.on_clicked(next_plot)
+            global bprev
             bprev = Button(axprev, 'Previous')
             bprev.on_clicked(prev_plot)
+            global bclose
             bclose = Button(axclose, 'Close')
             bclose.on_clicked(close_plot)
 
@@ -907,13 +910,13 @@ def _plot_linear_line_fitting(
     return coeffs[0]
 
 def _get_location(filename: str) -> str:
-    if 'UCSB' in filename:
-        return 'UCSB'
-    elif 'Cargnello' in filename:
-        return 'Cargnello'
-    elif 'SLAC' in filename:
-        return 'SLAC'
-    elif 'PSU' in filename:
-        return 'PSU'
+    if 'LaboratoryA' in filename:
+        return 'Laboratory A'
+    elif 'LaboratoryB' in filename:
+        return 'Laboratory B'
+    elif 'LaboratoryC' in filename:
+        return 'Laboratory C'
+    elif 'LaboratoryD' in filename:
+        return 'Laboratory D'
     else:
         return 'Unknown: add new location.'

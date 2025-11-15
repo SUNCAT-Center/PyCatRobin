@@ -35,10 +35,10 @@ conda activate pycatrobin
 * Example python codes to use `pycatrobin` are in [`examples/`](examples/) directory.
 * In the `examples/`, run as follows:
   ``` bash
-  python ./extract_from_gc_data_snr.py
   python ./Welchs_t_test.py
   python ./fANOVA.py
   ```
+  or run `SNR_heatmap.ipynb`.
 * See the instructions in the `examples/` folder.
 * Currently, Welch's t-test and fANOVA codes are separate scripts from `pycatrobin`. They will be incorporated into the main package in the near future.
 

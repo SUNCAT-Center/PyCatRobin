@@ -18,7 +18,7 @@ from ..data.extract import DataForGP, _plot_tos_data, _extract_indices_target
 class DataAnalysis:
 
     # Global dictionary for the location
-    location_dict = {'UCSB': 0, 'Cargnello': 1, 'SLAC': 2, 'PSU': 3}
+    location_dict = {'Laboratory A': 0, 'Laboratory B': 1, 'Laboratory C': 2, 'Laboratory D': 3}
 
     def __init__(self, dataset: DataForGP = None):
         """
@@ -167,7 +167,7 @@ class DataAnalysis:
             colors: list[str] = None,
     ):
         """
-        Compare the standard deviation of the target values for each column.
+        Compare the standard deviation of the quantitative descriptor for each performance metric.
 
         Args:
             snr_type (str): The type of signal-to-noise ratio (SNR) to use for comparison. Options are 'std_dev', 'range', or 'mu_sigma'. If snr_type='mu_sigma', it does not use statistics of the total group.
@@ -384,11 +384,11 @@ class DataAnalysis:
         sns.scatterplot(
             df, x='GroupID_jitter', y=column,
             hue='location',
-            palette=['red', 'blue', 'green', 'orange', 'purple', 'brown', 'pink', 'gray'],
+            palette=['orange', 'red', 'green', 'blue', 'purple', 'brown', 'pink', 'gray'],
             ax=axs[0], legend=True,
             style='location', edgecolor='w', s=30,
-            # markers=['X', 'o', 'P', '^', '*', 'v', 'D', 'P'],
-            # hue_order=hue_order,
+            markers=['X', 's', 'P', 'o', '^', '*', 'v', 'D', 'P'],
+            hue_order=sorted(df['location'].unique()),
             zorder=2
         )
         axs[0].set_xticks(list(groupid_to_num.values()))

@@ -76,8 +76,8 @@ def permutation_functional_anova(groups, n_permutations=1000, random_state=42):
 def process_folder(folder_path: Path):
     """
     Process one folder: read data, trim by temperature stability,
-    merge constants, summarize each file (including SLAC), run Functional ANOVA,
-    and plot (including SLAC experiments).
+    merge constants, summarize each file, run Functional ANOVA,
+    and plot.
     """
     print(f"\n▶ Processing “{folder_path.name}” …")
 
@@ -197,20 +197,15 @@ def process_folder(folder_path: Path):
     # 3.6  Plotting
     plt.figure(figsize=(10, 6))
     palette = {
-        'Cargnello1': '#e41a1c',
-        'Stanford':   '#e41a1c',
-        'PSU':        '#6a3d9a',
-        'UCSB':       '#1b9e77',
-        'SLAC':       '#ff69b4',
+        'LaboratoryA': '#6a3d9a',
+        'LaboratoryB': '#ff69b4',
+        'LaboratoryC': '#1b9e77',
+        'LaboratoryD': '#e41a1c',
     }
 
     for source, df_exp in combined_df.groupby('Source'):
         lab_id = df_exp['LocationDailyReactionNumber'].iloc[0]
-        if lab_id.startswith('SLAC'):
-            colour = palette['SLAC']
-        else:
-            lab_key = 'Stanford' if lab_id == 'Cargnello1' else lab_id
-            colour = palette.get(lab_key, '#333333')
+        colour = palette.get(lab_id, '#333333')
 
         plt.plot(
             df_exp['Time on Stream (hr)'],
@@ -229,6 +224,9 @@ def process_folder(folder_path: Path):
     plt.show()
 
 # Run the pipeline on all folders in current directory
-for sub in Path('../dataset/finalized_RR_data').iterdir():
-    if sub.is_dir() and not sub.name.startswith('.'):
-        process_folder(sub)
+# for sub in Path('../dataset/refined/').iterdir():
+#     if sub.is_dir() and not sub.name.startswith('.'):
+#         process_folder(sub)
+
+# Run the pipeline on all folders in current directory
+process_folder(Path('../dataset/refined/WI_2wt_500+premix/'))
