@@ -8,7 +8,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![pandas](https://img.shields.io/badge/pandas-compatible-green.svg)](https://pandas.pydata.org/)
 
-**Py**thon module to analyze time-on-stream **Cat**alyst testing results from Round **Robin** test
+**Py**thon module to analyze time-on-stream **Cat**alyst testing results from Round **Robin** test. Catalyst durability is an essential component to secure to realize industrial catalysts. A popular form of data that characterizes the durability is time-series data. When it comes to increasing dataset size by combining multiple data sources like reactors, we face challenges such as systematic errors between reactors and varying experimental conditions. `PyCatRobin` is developed to address these challenges by providing functionalities to extract features from time-series data, quantify uncertainties of them due to heterogeneity in reactors/conditions, and visualize the results effectively.
 
 ## Requirements
 * All specified in `setup.py`
