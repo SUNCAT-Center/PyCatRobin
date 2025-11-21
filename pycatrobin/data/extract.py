@@ -10,7 +10,7 @@ from datetime import timedelta
 from IPython.display import display
 from matplotlib.widgets import Button
 
-class DataForGP:
+class DataForML:
     """
     A class to handle and process experimental data for Gaussian Process (GP) modeling.
 
