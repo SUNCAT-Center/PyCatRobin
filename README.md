@@ -81,8 +81,8 @@ conda activate pycatrobin
   </div>
 
 ## Related publication
-* Quantifying Experimental Uncertainty in Catalyst Deactivation: Round-Robin Testing and Implications for Machine-Learned Prediction*, 
-S. Bac, D. Shin, S. Hong, J. Heinlein, A. Khan, G. Barber, Z. Chen, M. M. Albrechtsen, C. Tassone*, R. M. Rioux*, M. Cargnello*, S. R. Bare*, K. Winther*, P. Christopher*, A. S. Hoffman*, submitted (2025).
+* **Quantifying Experimental Uncertainty in Catalyst Activity and Deactivation: Round Robin Testing and Implications for Machine-Learned Prediction**, 
+S. Bac, D. Shin, S. Hong, J. Heinlein, A. Khan, G. Barber, Z. Chen, M. M. Albrechtsen, C. Tassone*, R. M. Rioux*, M. Cargnello*, S. R. Bare*, K. Winther*, P. Christopher*, A. S. Hoffman*, *Nature Catalysis*, in press (2026).
 
 ## Acknowledgement
 * Original codes for t-test and fANOVA analyses were written by Dr. Selin Bac (UCSB) and Michael Albrechtsen (DTU), respectively.

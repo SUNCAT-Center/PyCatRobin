@@ -17,9 +17,6 @@ from ..data.extract import DataForML, _plot_tos_data, _extract_indices_target
 
 class DataAnalysis:
 
-    # Global dictionary for the location
-    location_dict = {'Laboratory A': 0, 'Laboratory B': 1, 'Laboratory C': 2, 'Laboratory D': 3}
-
     def __init__(self, dataset: DataForML = None):
         """
         Initialize the DataAnalysis class.
@@ -35,6 +32,13 @@ class DataAnalysis:
         self.unique_properties = None
         self.df_snr = None
         self.df_violinplot = None
+
+        # Set location_dict based on dataset's location_mapping
+        if dataset.location_mapping:
+            self.location_dict = {v: i for i, v in enumerate(dataset.location_mapping.values())}
+        else:
+            # Fallback default
+            self.location_dict = {'Laboratory A': 0, 'Laboratory B': 1, 'Laboratory C': 2, 'Laboratory D': 3}
 
     def calculate_statistics_duplicate_group(self, verbose: bool = False,
                                              dataset_all: DataForML = None,
@@ -598,7 +602,6 @@ class DataAnalysis:
                 location_data[locations[i]]['count'] += 1
 
             # Plot data for each location
-
             for location, data in location_data.items():
                 plt.scatter(
                     data['tos'], data['col_val'],
@@ -608,6 +611,16 @@ class DataAnalysis:
                     color=cmap(location_dict[location]),
                     label=f'{location} ({data["count"]})'
                 )
+                # Add line connecting the scatter points
+                chunk_size = len(data['tos']) // data['count']
+                for i in range(0, len(data['tos']), chunk_size):
+                    plt.plot(
+                        data['tos'][i:i+chunk_size],
+                        data['col_val'][i:i+chunk_size],
+                        color=cmap(location_dict[location]),
+                        linewidth=0.8,
+                        alpha=0.5
+                    )
             if x_max_plot:
                 plt.xlim(0, x_max_plot)
             if y_max_plot:

@@ -59,6 +59,7 @@ class DataForML:
         self.df_us = None
         self.df_us_unique = None
         self.targets = []
+        self.location_mapping = None
 
     def find_excel_files(self):
         extension = ['*.xlsx', '*.xls']
@@ -91,7 +92,27 @@ class DataForML:
             for path in self.path_removed:
                 print(path)
 
-    def construct_dataframe(self, extensive:bool=False):
+    def construct_dataframe(self, extensive:bool=False, location_mapping: dict[str, str] | None=None):
+        """
+        Construct a DataFrame from the filtered Excel files.
+
+        Args:
+            extensive (bool): Whether to include additional experimental variables such as
+                filename, experiment_date, etc. Defaults to False.
+            location_mapping (dict[str, str] | None): Candidate locations mapping to assign data with.
+                Defaults to {'LaboratoryA': 'Laboratory A', 'LaboratoryB': 'Laboratory B',
+                'LaboratoryC': 'Laboratory C', 'LaboratoryD': 'Laboratory D'}.
+
+        Returns:
+            None
+        """
+        if location_mapping is None:
+            location_mapping = {'LaboratoryA': 'Laboratory A', 'LaboratoryB': 'Laboratory B',
+                                'LaboratoryC': 'Laboratory C', 'LaboratoryD': 'Laboratory D'}
+
+        # Store location_mapping as instance variable
+        self.location_mapping = location_mapping
+
         if extensive:
             self.df_us = pd.DataFrame(
                 {'reaction_temp': [],
@@ -128,7 +149,9 @@ class DataForML:
         self.df_us['experiment_date'] = pd.to_datetime(self.df_us['experiment_date'], format='%Y%m%d')
 
         # add 'location' column
-        self.df_us['location'] = self.df_us['filename'].apply(_get_location)
+        self.df_us['location'] = self.df_us['filename'].apply(
+            lambda fn: _get_location(fn, locations=location_mapping)
+        )
 
     def convert_measured_to_nominal(self,
                                     allowed_values: np.array = None,
@@ -696,9 +719,21 @@ def _calculate_target(
     elif method == 'AUC':
         # calculate area under the curve (AUC) using trapezoidal rule
         target = np.trapz(col_val[selected_index], tos[selected_index])
-    # elif method == 'decaying rate':
-    #     print('not implemented yet')
-    #     return
+    elif method == 'de-const initial':
+        target = _calculate_deactivation_constant(
+            tos, col_val, initial_index, final_index, adjacency_slope, where='initial'
+        )
+    elif method == 'de-const final':
+        target = _calculate_deactivation_constant(
+            tos, col_val, initial_index, final_index, adjacency_slope, where='final'
+        )
+    elif method == 'de-const overall':
+        target = _calculate_deactivation_constant(
+            tos, col_val, initial_index, final_index, adjacency_slope, where='overall'
+        )
+    elif method == 'normalized final value':
+        # calculate normalized final value: value(t_final) / value(t_initial); inter/extrapolation may be needed.
+        target = _calculate_normalized_final_value(tos, col_val, t_initial=0, t_final=35)
 
     if verbose:
         print(f"{column}->{method}: {target:.4f}")
@@ -775,10 +810,7 @@ def _extract_indices_target(
     # Find the final index based on the duration from the initial index
     final_index = np.argwhere(tos >= tos[initial_index] + duration).reshape(-1)[0]
 
-    # Find the selected indices within the initial and final index range
-    selected_index = np.arange(initial_index, final_index + 1)
-
-    # Modify indices according to the given `method` argument for 'plot_slope'
+    # Modify indices according to the given `method` argument for slope calculations
     if method == 'initial slope':
         # use the same initial_index
         try:
@@ -793,6 +825,9 @@ def _extract_indices_target(
             initial_index = np.argwhere(tos <= tos[final_index] - adjacency_slope).reshape(-1)[-1]
         except Exception as e:
             print(e, f'has occurred while calculating `initial_index` for {method}.')
+
+    # Find the selected indices within the initial and final index range
+    selected_index = np.arange(initial_index, final_index + 1)
 
     return tos, temp, col_val, initial_index, final_index, selected_index
 
@@ -909,14 +944,170 @@ def _plot_linear_line_fitting(
         plt.show()
     return coeffs[0]
 
-def _get_location(filename: str) -> str:
-    if 'LaboratoryA' in filename:
-        return 'Laboratory A'
-    elif 'LaboratoryB' in filename:
-        return 'Laboratory B'
-    elif 'LaboratoryC' in filename:
-        return 'Laboratory C'
-    elif 'LaboratoryD' in filename:
-        return 'Laboratory D'
+def _calculate_deactivation_constant(tos, col_val, initial_index, final_index, adjacency_slope, where='overall'):
+    """
+    Calculate deactivation constant by fitting to exponential decay function.
+    1st order deactivation model for rate, not concentration as in textbooks.
+    ln(r/ro) -> np.log(col_val / col_val[initial_index])
+    initial and final slope calculations are based on the data points close to initial and final index, respectively,
+    with a given adjacency_slope in tos. Overall slope calculation is based on the data points between initial and
+    final index.
+
+    Args:
+        tos (pd.Series): Time on stream series.
+        col_val (pd.Series): Column values series.
+        initial_index (int): Initial index for fitting.
+        final_index (int): Final index for fitting.
+        adjacency_slope (float): Slope threshold for initial and final slope calculations.
+        where (str): Method to calculate the deactivation constant. Options are 'initial', 'final', or 'overall'.
+
+    Returns:
+        float: Deactivation constant.
+    """
+
+    # Note: The same r0 (the value at unmodified initial_index) should be used for the following three methods
+
+    if where == 'initial':
+        # choosing modified final_index
+        try:
+            # choosing final index which is close, in tos, to initial index
+            final_index_mod = np.argwhere(tos >= tos[initial_index] + adjacency_slope).reshape(-1)[0]
+        except Exception as e:
+            print(e, f'has occurred while calculating `final_index` for {where} deactivation constant.')
+
+        # Find the selected indices within the initial and final index range
+        selected_index = np.arange(initial_index, final_index_mod + 1)
+
+        # Mask to filter out non-finite values for logarithm calculation
+        tos = tos[selected_index]
+        ln = np.where(
+            (col_val[selected_index] / col_val[initial_index]) > 0,
+            np.log(col_val[selected_index] / col_val[initial_index]),
+            np.nan
+        )
+        mask = np.isfinite(tos) & np.isfinite(ln)
+
+        slope, _ = np.polyfit(tos[mask], ln[mask],1)
+    elif where == 'final':
+        # choosing modified initial_index
+        try:
+            # choosing initial index which is close, in tos, to final index
+            initial_index_mod = np.argwhere(tos <= tos[final_index] - adjacency_slope).reshape(-1)[-1]
+        except Exception as e:
+            print(e, f'has occurred while calculating `initial_index` for {where} deactivation constant.')
+
+        # Find the selected indices within the initial and final index range
+        selected_index = np.arange(initial_index_mod, final_index + 1)
+
+        # Mask to filter out non-finite values for logarithm calculation
+        tos = tos[selected_index]
+        ln = np.where(
+            (col_val[selected_index] / col_val[initial_index]) > 0,
+            np.log(col_val[selected_index] / col_val[initial_index]),
+            np.nan
+        )
+        mask = np.isfinite(tos) & np.isfinite(ln)
+
+        slope, _ = np.polyfit(tos[mask], ln[mask],1)
+    elif where == 'overall':
+        # Find the selected indices within the initial and final index range
+        selected_index = np.arange(initial_index, final_index + 1)
+
+        # Mask to filter out non-finite values for logarithm calculation
+        tos = tos[selected_index]
+        ln = np.where(
+            (col_val[selected_index] / col_val[initial_index]) > 0,
+            np.log(col_val[selected_index] / col_val[initial_index]),
+            np.nan
+            )
+        mask = np.isfinite(tos) & np.isfinite(ln)
+
+        slope, _ = np.polyfit(tos[mask], ln[mask],1)
+
+    return np.nan if col_val[initial_index]==0 else -slope
+
+def _calculate_normalized_final_value(tos, col_val, t_initial=0, t_final=35, ax=None):
+    """
+    Calculate normalized final value with inter/extrapolation.
+    value(t_final) / value(t_initial)
+
+    Args:
+        tos (pd.Series): Time on stream series.
+        col_val (pd.Series): Column values series.
+        t_initial (float): Initial time on stream for normalization.
+        t_final (float): Final time on stream for evaluation.
+        ax (plt.Axes, optional): Matplotlib Axes object for verification plotting. Defaults to None.
+
+    Returns:
+        float: Normalized final value.
+    """
+
+    def linear_func(x, x1, x2, y1, y2):
+        a = (y2 - y1) / (x2 - x1)
+        b = y2 - a * x2
+        return a * x + b, a
+
+    # Calculate the value (t=t_initial) (inter/extrapolation)
+    initial_val, _ = linear_func(
+        t_initial,
+        tos.iloc[0],
+        tos.iloc[1],
+        col_val.iloc[0],
+        col_val.iloc[1])
+
+    # Calculate the value (t=t_final) (inter/extrapolation)
+    # Select two indexes, of which tos values are around 't_final', for interpolation/extrapolation
+    if tos.iloc[-1] > t_final:
+        final_index_i = tos[tos <= t_final].index[-1]
+        final_index_f = tos[tos >= t_final].index[0]
     else:
-        return 'Unknown: add new location.'
+        print(f"The final time on stream is less than {t_final}. Extrapolation will be performed.")
+        final_index_f = len(tos) - 1
+        final_index_i = final_index_f - 1
+
+    final_val, _ = linear_func(
+        t_final,
+        tos.iloc[final_index_i],
+        tos.iloc[final_index_f],
+        col_val.iloc[final_index_i],
+        col_val.iloc[final_index_f])
+
+    # Optional plot for verification
+    if ax:
+        x_plot_i = np.linspace(t_initial, (t_final - t_initial) / 2, 100)
+        y_plot_i, _ = linear_func(
+            x_plot_i,
+            tos.iloc[0],
+            tos.iloc[1],
+            col_val.iloc[0],
+            col_val.iloc[1]
+        )
+        x_plot_f = np.linspace((t_final - t_initial) / 2, t_final, 100)
+        y_plot_f, _ = linear_func(
+            x_plot_f,
+            tos.iloc[final_index_i],
+            tos.iloc[final_index_f],
+            col_val.iloc[final_index_i],
+            col_val.iloc[final_index_f]
+        )
+
+
+        ax.plot(tos, col_val, marker='o', linestyle='-') # original data
+        ax.plot(x_plot_i, y_plot_i, label='Linear Fit (Initial Slope)', linestyle='--')
+        ax.plot(x_plot_f, y_plot_f, label='Linear Fit (Final Slope)', linestyle='--')
+        ax.scatter(
+            [t_initial, t_final],
+            [initial_val, final_val],
+            color='red', label='Inter/Extrapolated Values'
+        )
+        ax.legend()
+
+    return final_val / initial_val
+
+def _get_location(filename: str, locations: dict[str, str] | None = None) -> str:
+    if locations:
+        for key, value in locations.items():
+            if key in filename:
+                return value
+    return 'Unknown: add new location.'
+
