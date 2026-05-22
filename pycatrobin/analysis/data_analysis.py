@@ -391,8 +391,9 @@ class DataAnalysis:
             palette=['orange', 'red', 'green', 'blue', 'purple', 'brown', 'pink', 'gray'],
             ax=axs[0], legend=True,
             style='location', edgecolor='w', s=30,
-            markers=['X', 's', 'P', 'o', '^', '*', 'v', 'D', 'P'],
+            markers=['P', 'o', 's', 'X', '^', '*', 'v', 'D'],
             hue_order=sorted(df['location'].unique()),
+            style_order=sorted(df['location'].unique()),
             zorder=2
         )
         axs[0].set_xticks(list(groupid_to_num.values()))
@@ -421,7 +422,7 @@ class DataAnalysis:
         plt.tight_layout()
         if save_fig:
             print('Saving the figure...')
-            filename = f'violin_{column}_{prefix}.png'\
+            filename = f'violin_{column}_{prefix}.svg'\
                     .replace(' ', '_')\
                     .replace('(mol/molRh/s)', '')\
                     .replace('(%)', '')

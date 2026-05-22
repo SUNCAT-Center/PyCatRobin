@@ -733,7 +733,11 @@ def _calculate_target(
         )
     elif method == 'normalized final value':
         # calculate normalized final value: value(t_final) / value(t_initial); inter/extrapolation may be needed.
-        target = _calculate_normalized_final_value(tos, col_val, t_initial=0, t_final=35)
+        target = _calculate_normalized_final_value(tos, col_val, t_initial=2.5, t_final=35)
+
+    elif method == 'corrected final value':
+        # calculate corrected final value at t_final=35; inter/extrapolation may be needed.
+        target = _calculate_corrected_final_value(tos, col_val, t_final=35)
 
     if verbose:
         print(f"{column}->{method}: {target:.4f}")
@@ -1103,6 +1107,43 @@ def _calculate_normalized_final_value(tos, col_val, t_initial=0, t_final=35, ax=
         ax.legend()
 
     return final_val / initial_val
+
+def _calculate_corrected_final_value(tos, col_val, t_final=35):
+    """
+    Calculate the value(t=t_final) with inter/extrapolation.
+
+    Args:
+        tos (pd.Series): Time on stream series.
+        col_val (pd.Series): Column values series.
+        t_final (float): Final time on stream for evaluation.
+
+    Returns:
+        float: Corrected final value.
+    """
+
+    def linear_func(x, x1, x2, y1, y2):
+        a = (y2 - y1) / (x2 - x1)
+        b = y2 - a * x2
+        return a * x + b, a
+
+    # Calculate the value (t=t_final) (inter/extrapolation)
+    # Select two indexes, of which tos values are around 't_final', for interpolation/extrapolation
+    if tos.iloc[-1] > t_final:
+        final_index_i = tos[tos <= t_final].index[-1]
+        final_index_f = tos[tos >= t_final].index[0]
+    else:
+        print(f"The final time on stream is less than {t_final}. Extrapolation will be performed.")
+        final_index_f = len(tos) - 1
+        final_index_i = final_index_f - 1
+
+    final_val, _ = linear_func(
+        t_final,
+        tos.iloc[final_index_i],
+        tos.iloc[final_index_f],
+        col_val.iloc[final_index_i],
+        col_val.iloc[final_index_f])
+
+    return final_val
 
 def _get_location(filename: str, locations: dict[str, str] | None = None) -> str:
     if locations:
