@@ -82,7 +82,15 @@ conda activate pycatrobin
 
 ## Related publication
 * **Quantifying uncertainty in catalyst activity and deactivation during CO2 hydrogenation via round-robin testing for data-driven modelling**, 
-S. Bac, D. Shin, S. Hong, J. Heinlein, A. Khan, G. Barber, Z. Chen, M. M. Albrechtsen, C. Tassone*, R. M. Rioux*, M. Cargnello*, S. R. Bare*, K. Winther*, P. Christopher*, A. S. Hoffman*, *Nature Catalysis*, in press (2026). DOI: 10.1038/s41929-026-01559-y
+S. Bac, D. Shin, S. Hong, J. Heinlein, A. Khan, G. Barber, Z. Chen, M. M. Albrechtsen, C. Tassone*, R. M. Rioux*, M. Cargnello*, S. R. Bare*, K. Winther*, P. Christopher*, A. S. Hoffman*, *Nature Catalysis*, in press (2026).  
+DOI: 10.1038/s41929-026-01559-y  
+URL: https://www.nature.com/articles/s41929-026-01559-y
+
+## Related dataset
+* **Dataset: Quantifying Uncertainty in Catalyst Activity and Deactivation during CO2 Hydrogenation via Round-Robin Testing for Data-Driven Modeling [Dataset]**, 
+S. Bac, D. Shin, S. Hong, J. Heinlein, A. Khan, G. Barber, Z. Chen, M. M. Albrechtsen, C. Tassone*, R. M. Rioux*, M. Cargnello*, S. R. Bare*, K. Winther*, P. Christopher*, A. S. Hoffman*, *Zenodo* (2026).  
+DOI: 10.5281/zenodo.20370161  
+URL: https://zenodo.org/records/20370161
 
 ## Acknowledgement
 * Original codes for t-test and fANOVA analyses were written by Dr. Selin Bac (UCSB) and Michael Albrechtsen (DTU), respectively.
